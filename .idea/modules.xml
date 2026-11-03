@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../PikiOraAppointmentManagementSystem/.idea/PikiOraAppointmentManagementSystem.iml" filepath="$PROJECT_DIR$/../PikiOraAppointmentManagementSystem/.idea/PikiOraAppointmentManagementSystem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/pikiora-frontend.iml" filepath="$PROJECT_DIR$/.idea/pikiora-frontend.iml" />
+    </modules>
+  </component>
+</project>
