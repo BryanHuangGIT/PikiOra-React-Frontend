@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PatientDashboard from "./pages/PatientDashboard";
 import BookAppointment from "./pages/BookAppointment";
+import DoctorDashboard from "./pages/DoctorDashboard";
 
 function Dashboard({ title }) {
   return (
@@ -32,25 +33,16 @@ function App() {
           path="/"
           element={<Navigate to="/login" replace />}
         />
-
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         <Route
           path="/patient/dashboard"
           element={<PatientDashboard />}
         />
-
-        <Route
-          path="/doctor/dashboard"
-          element={<Dashboard title="Doctor Dashboard" />}
-        />
-
         <Route
           path="/admin/dashboard"
           element={<Dashboard title="Administrator Dashboard" />}
         />
-
         <Route
           path="*"
           element={<Navigate to="/login" replace />}
@@ -58,6 +50,10 @@ function App() {
           <Route
           path="/patient/book/:doctorId"
           element={<BookAppointment />}
+        />
+        <Route
+          path="/doctor/dashboard"
+          element={<DoctorDashboard />}
         />
       </Routes>
     </BrowserRouter>
