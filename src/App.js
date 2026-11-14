@@ -1,32 +1,60 @@
-import React, { useState } from "react";
-import api from "./api";
+import React from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Link,
+} from "react-router-dom";
+
+import Login from "./pages/Login";
+
+function Dashboard({ title }) {
+  return (
+    <div style={{ padding: "40px" }}>
+      <h1>{title}</h1>
+      <p>Login successful! Dashboard features will be added next.</p>
+      <Link to="/login">Back to Login</Link>
+    </div>
+  );
+}
 
 function App() {
-  const [message, setMessage] = useState("Click the button to test the connection.");
-
-  const testConnection = async () => {
-    try {
-      const response = await api.get("doctors/");
-      setMessage(
-        `Successfully connected to Django! Found ${response.data.length} doctors.`
-      );
-    } catch (error) {
-      console.error(error);
-      setMessage("Connection failed. Check the browser console.");
-    }
-  };
-
   return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h1>Piki Ora Medical Centre</h1>
-      <h2>React + Django REST Framework</h2>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login />} />
 
-      <button onClick={testConnection}>
-        Test Django Connection
-      </button>
+        <Route
+          path="/patient/dashboard"
+          element={<Dashboard title="Patient Dashboard" />}
+        />
 
-      <p>{message}</p>
-    </div>
+        <Route
+          path="/doctor/dashboard"
+          element={<Dashboard title="Doctor Dashboard" />}
+        />
+
+        <Route
+          path="/admin/dashboard"
+          element={<Dashboard title="Administrator Dashboard" />}
+        />
+
+        <Route
+          path="/register"
+          element={
+            <div style={{ padding: "40px" }}>
+              <h1>Patient Registration</h1>
+              <p>Registration form will be implemented next.</p>
+              <Link to="/login">Back to Login</Link>
+            </div>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
