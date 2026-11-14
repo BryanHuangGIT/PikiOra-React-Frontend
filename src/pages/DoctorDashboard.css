@@ -140,3 +140,64 @@
     padding: 20px;
   }
 }
+
+
+/* Doctor appointment actions */
+
+.doctor-appointment-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.confirm-button,
+.complete-button {
+  padding: 11px 16px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-button {
+  background: #0f766e;
+}
+
+.confirm-button:hover {
+  background: #115e59;
+}
+
+.complete-button {
+  background: #2563eb;
+}
+
+.complete-button:hover {
+  background: #1d4ed8;
+}
+
+.confirm-button:disabled,
+.complete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.doctor-success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.doctor-refresh-button {
+  background: #0f766e;
+  color: white;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
