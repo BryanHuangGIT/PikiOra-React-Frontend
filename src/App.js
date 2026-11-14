@@ -9,6 +9,7 @@ import {
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import PatientDashboard from "./pages/PatientDashboard";
 
 function Dashboard({ title }) {
   return (
@@ -36,7 +37,7 @@ function App() {
 
         <Route
           path="/patient/dashboard"
-          element={<Dashboard title="Patient Dashboard" />}
+          element={<PatientDashboard />}
         />
 
         <Route

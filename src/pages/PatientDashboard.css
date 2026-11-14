@@ -1,0 +1,134 @@
+.patient-dashboard {
+  min-height: 100vh;
+  background: #f4f8f7;
+  font-family: Arial, sans-serif;
+}
+
+.patient-header {
+  background: #0f766e;
+  color: white;
+  padding: 20px 6%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.patient-header h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.patient-header p {
+  margin: 6px 0 0;
+  opacity: 0.9;
+}
+
+.patient-header button {
+  background: white;
+  color: #0f766e;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.patient-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 35px 20px;
+}
+
+.patient-welcome {
+  background: white;
+  padding: 28px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.patient-welcome h2 {
+  color: #173b3b;
+  margin-top: 0;
+}
+
+.patient-welcome p {
+  color: #64748b;
+}
+
+.patient-section {
+  background: white;
+  padding: 28px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+}
+
+.patient-section h2 {
+  margin-top: 0;
+  color: #173b3b;
+}
+
+.doctor-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(230px, 1fr)
+  );
+  gap: 20px;
+  margin-top: 22px;
+}
+
+.doctor-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.doctor-avatar {
+  width: 55px;
+  height: 55px;
+  background: #ccfbf1;
+  color: #0f766e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin: 0 auto 15px;
+}
+
+.doctor-card h3 {
+  color: #173b3b;
+}
+
+.doctor-card p {
+  color: #64748b;
+}
+
+.doctor-card button {
+  background: #0f766e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.doctor-card button:hover {
+  background: #115e59;
+}
+
+.patient-error {
+  color: #b91c1c;
+}
+
+@media (max-width: 600px) {
+  .patient-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   useNavigate,
@@ -12,7 +13,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Show success message after patient registration
+  // Registration success message
   const successMessage = location.state?.message;
 
   // Login form state
@@ -29,21 +30,38 @@ function Login() {
     setLoading(true);
 
     try {
-      // Send login credentials to Django REST API
+      // Send credentials to Django REST API
       const response = await api.post("auth/login/", {
         username,
         password,
       });
 
-      const { token, role } = response.data;
+      // Avoid username variable conflict
+      const {
+        token,
+        role,
+        username: returnedUsername,
+      } = response.data;
 
       if (!token) {
-        throw new Error("No authentication token returned.");
+        throw new Error(
+          "No authentication token returned."
+        );
       }
 
-      // Store authentication information
+      if (!["admin", "doctor", "patient"].includes(role)) {
+        throw new Error(
+          "Unknown account role returned by the server."
+        );
+      }
+
+      // Save authentication information
       sessionStorage.setItem("token", token);
-      sessionStorage.setItem("role", role || "");
+      sessionStorage.setItem("role", role);
+      sessionStorage.setItem(
+        "username",
+        returnedUsername || username
+      );
 
       // Redirect according to user role
       if (role === "admin") {
@@ -54,7 +72,7 @@ function Login() {
         navigate("/doctor/dashboard", {
           replace: true,
         });
-      } else {
+      } else if (role === "patient") {
         navigate("/patient/dashboard", {
           replace: true,
         });
@@ -64,9 +82,9 @@ function Login() {
 
       setError(
         err.response?.data?.detail ||
-          err.response?.data?.error ||
-          err.message ||
-          "Login failed. Please check your credentials."
+        err.response?.data?.error ||
+        err.message ||
+        "Login failed. Please check your credentials."
       );
     } finally {
       setLoading(false);
@@ -117,7 +135,9 @@ function Login() {
             id="username"
             type="text"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) =>
+              setUsername(e.target.value)
+            }
             placeholder="Enter your username"
             autoComplete="username"
             required
@@ -132,7 +152,9 @@ function Login() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
             placeholder="Enter your password"
             autoComplete="current-password"
             required
@@ -140,7 +162,10 @@ function Login() {
 
           {/* Login error */}
           {error && (
-            <p className="login-error" role="alert">
+            <p
+              className="login-error"
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -150,7 +175,9 @@ function Login() {
             type="submit"
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading
+              ? "Signing in..."
+              : "Sign In"}
           </button>
 
         </form>
