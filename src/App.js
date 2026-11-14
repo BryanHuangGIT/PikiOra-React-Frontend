@@ -10,6 +10,7 @@ import {
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PatientDashboard from "./pages/PatientDashboard";
+import BookAppointment from "./pages/BookAppointment";
 
 function Dashboard({ title }) {
   return (
@@ -53,6 +54,10 @@ function App() {
         <Route
           path="*"
           element={<Navigate to="/login" replace />}
+        />
+          <Route
+          path="/patient/book/:doctorId"
+          element={<BookAppointment />}
         />
       </Routes>
     </BrowserRouter>
