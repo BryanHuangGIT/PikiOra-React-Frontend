@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "./PatientDashboard.css";
@@ -7,10 +7,39 @@ function PatientDashboard() {
   const navigate = useNavigate();
 
   const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [appointments, setAppointments] = useState([]);
+
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
+
+  const [doctorsError, setDoctorsError] = useState("");
+  const [appointmentsError, setAppointmentsError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const [cancellingId, setCancellingId] = useState(null);
 
   const username = sessionStorage.getItem("username");
+
+  const fetchAppointments = useCallback(async () => {
+    setLoadingAppointments(true);
+    setAppointmentsError("");
+
+    try {
+      const response = await api.get("appointments/");
+      const data = response.data;
+
+      setAppointments(
+        Array.isArray(data) ? data : data.results || []
+      );
+    } catch (err) {
+      console.error("Failed to load appointments:", err);
+      setAppointmentsError(
+        "Unable to load appointments. Please try again."
+      );
+    } finally {
+      setLoadingAppointments(false);
+    }
+  }, []);
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -31,14 +60,49 @@ function PatientDashboard() {
         );
       } catch (err) {
         console.error("Failed to load doctors:", err);
-        setError("Unable to load doctors. Please try again.");
+        setDoctorsError(
+          "Unable to load doctors. Please try again."
+        );
       } finally {
-        setLoading(false);
+        setLoadingDoctors(false);
       }
     };
 
     fetchDoctors();
-  }, [navigate]);
+    fetchAppointments();
+  }, [navigate, fetchAppointments]);
+
+  const handleCancel = async (appointmentId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this appointment?"
+    );
+
+    if (!confirmed) return;
+
+    setCancellingId(appointmentId);
+    setAppointmentsError("");
+    setMessage("");
+
+    try {
+      await api.patch(
+        `appointments/${appointmentId}/cancel/`
+      );
+
+      setMessage("Appointment cancelled successfully.");
+      await fetchAppointments();
+    } catch (err) {
+      console.error("Cancellation failed:", err);
+
+      const data = err.response?.data;
+      setAppointmentsError(
+        data?.error ||
+        data?.detail ||
+        "Unable to cancel this appointment."
+      );
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -52,6 +116,110 @@ function PatientDashboard() {
       navigate("/login", { replace: true });
     }
   };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return "N/A";
+
+    return timeString.slice(0, 5);
+  };
+
+  const isUpcoming = (appointment) => {
+    const appointmentDateTime = new Date(
+      `${appointment.appointment_date}T${appointment.appointment_time}`
+    );
+
+    return appointmentDateTime > new Date();
+  };
+
+  const upcomingAppointments = appointments
+    .filter(
+      (appointment) =>
+        isUpcoming(appointment) &&
+        appointment.status !== "Cancelled" &&
+        appointment.status !== "Completed"
+    )
+    .sort((a, b) =>
+      `${a.appointment_date}T${a.appointment_time}`.localeCompare(
+        `${b.appointment_date}T${b.appointment_time}`
+      )
+    );
+
+  const appointmentHistory = appointments
+    .filter(
+      (appointment) =>
+        !isUpcoming(appointment) ||
+        appointment.status === "Cancelled" ||
+        appointment.status === "Completed"
+    )
+    .sort((a, b) =>
+      `${b.appointment_date}T${b.appointment_time}`.localeCompare(
+        `${a.appointment_date}T${a.appointment_time}`
+      )
+    );
+
+  const renderAppointment = (appointment) => (
+    <div
+      className="appointment-card"
+      key={appointment.id}
+    >
+      <div className="appointment-card-top">
+        <h3>
+          {appointment.doctor_name
+            ? `Dr. ${appointment.doctor_name}`
+            : `Doctor ${appointment.doctor}`}
+        </h3>
+
+        <span
+          className={`appointment-status status-${appointment.status.toLowerCase()}`}
+        >
+          {appointment.status}
+        </span>
+      </div>
+
+      <p>
+        <strong>Date:</strong>{" "}
+        {formatDate(appointment.appointment_date)}
+      </p>
+
+      <p>
+        <strong>Time:</strong>{" "}
+        {formatTime(appointment.appointment_time)}
+      </p>
+
+      <p>
+        <strong>Duration:</strong> 30 minutes
+      </p>
+
+      <p>
+        <strong>Reason:</strong>{" "}
+        {appointment.reason || "Not provided"}
+      </p>
+
+      {isUpcoming(appointment) &&
+        ["Pending", "Confirmed"].includes(
+          appointment.status
+        ) && (
+          <button
+            className="cancel-appointment-button"
+            onClick={() =>
+              handleCancel(appointment.id)
+            }
+            disabled={cancellingId === appointment.id}
+          >
+            {cancellingId === appointment.id
+              ? "Cancelling..."
+              : "Cancel Appointment"}
+          </button>
+        )}
+    </div>
+  );
 
   return (
     <div className="patient-dashboard">
@@ -77,17 +245,75 @@ function PatientDashboard() {
         </section>
 
         <section className="patient-section">
+          <h2>My Appointments</h2>
+
+          {message && (
+            <p className="patient-success" role="status">
+              {message}
+            </p>
+          )}
+
+          {appointmentsError && (
+            <p className="patient-error" role="alert">
+              {appointmentsError}
+            </p>
+          )}
+
+          <button
+            className="refresh-appointments-button"
+            onClick={fetchAppointments}
+            disabled={loadingAppointments}
+          >
+            Refresh Appointments
+          </button>
+
+          {loadingAppointments ? (
+            <p>Loading appointments...</p>
+          ) : (
+            <>
+              <h3>Upcoming Appointments</h3>
+
+              {upcomingAppointments.length === 0 ? (
+                <p>You have no upcoming appointments.</p>
+              ) : (
+                <div className="appointments-grid">
+                  {upcomingAppointments.map(renderAppointment)}
+                </div>
+              )}
+
+              <h3 className="appointment-history-title">
+                Appointment History
+              </h3>
+
+              {appointmentHistory.length === 0 ? (
+                <p>No appointment history yet.</p>
+              ) : (
+                <div className="appointments-grid">
+                  {appointmentHistory.map(renderAppointment)}
+                </div>
+              )}
+            </>
+          )}
+        </section>
+
+        <section className="patient-section">
           <h2>Available Doctors</h2>
 
-          {loading && <p>Loading doctors...</p>}
-
-          {error && (
-            <p className="patient-error">{error}</p>
+          {loadingDoctors && (
+            <p>Loading doctors...</p>
           )}
 
-          {!loading && !error && doctors.length === 0 && (
-            <p>No doctors are currently available.</p>
+          {doctorsError && (
+            <p className="patient-error">
+              {doctorsError}
+            </p>
           )}
+
+          {!loadingDoctors &&
+            !doctorsError &&
+            doctors.length === 0 && (
+              <p>No doctors are currently available.</p>
+            )}
 
           <div className="doctor-grid">
             {doctors.map((doctor) => (
@@ -98,10 +324,7 @@ function PatientDashboard() {
                 <div className="doctor-avatar">+</div>
 
                 <h3>
-                  Dr.{" "}
-                  {doctor.name ||
-                    doctor.user?.first_name ||
-                    doctor.username ||
+                  {doctor.doctor_name ||
                     `Doctor ${doctor.id}`}
                 </h3>
 
@@ -122,14 +345,6 @@ function PatientDashboard() {
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="patient-section">
-          <h2>My Appointments</h2>
-          <p>
-            Appointment history and upcoming bookings
-            will appear here.
-          </p>
         </section>
       </main>
     </div>

@@ -89,3 +89,90 @@
     gap: 15px;
   }
 }
+
+.booking-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.booking-card label {
+  font-weight: 600;
+  color: #334155;
+  margin-top: 10px;
+}
+
+.booking-card select,
+.booking-card input,
+.booking-card textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.booking-card select:focus,
+.booking-card input:focus,
+.booking-card textarea:focus {
+  outline: none;
+  border-color: #0f766e;
+}
+
+.booking-card textarea {
+  resize: vertical;
+}
+
+.booking-success {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.booking-back:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.time-slot {
+  background: #f0fdfa;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  padding: 14px 8px;
+  color: #115e59;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.time-slot:hover {
+  background: #ccfbf1;
+}
+
+.time-slot.selected {
+  background: #0f766e;
+  color: white;
+  border-color: #0f766e;
+}
+
+.time-slot:focus-visible {
+  outline: 3px solid #14b8a6;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
