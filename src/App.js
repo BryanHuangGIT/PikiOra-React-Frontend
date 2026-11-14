@@ -8,12 +8,15 @@ import {
 } from "react-router-dom";
 
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function Dashboard({ title }) {
   return (
     <div style={{ padding: "40px" }}>
       <h1>{title}</h1>
-      <p>Login successful! Dashboard features will be added next.</p>
+      <p>
+        Login successful! Dashboard features will be added next.
+      </p>
       <Link to="/login">Back to Login</Link>
     </div>
   );
@@ -23,8 +26,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/"
+          element={<Navigate to="/login" replace />}
+        />
+
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         <Route
           path="/patient/dashboard"
@@ -42,17 +50,9 @@ function App() {
         />
 
         <Route
-          path="/register"
-          element={
-            <div style={{ padding: "40px" }}>
-              <h1>Patient Registration</h1>
-              <p>Registration form will be implemented next.</p>
-              <Link to="/login">Back to Login</Link>
-            </div>
-          }
+          path="*"
+          element={<Navigate to="/login" replace />}
         />
-
-        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

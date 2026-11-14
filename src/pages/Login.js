@@ -1,23 +1,35 @@
-
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+  useLocation,
+} from "react-router-dom";
+
 import api from "../api";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Show success message after patient registration
+  const successMessage = location.state?.message;
+
+  // Login form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
+
     setError("");
     setLoading(true);
 
     try {
+      // Send login credentials to Django REST API
       const response = await api.post("auth/login/", {
         username,
         password,
@@ -29,23 +41,32 @@ function Login() {
         throw new Error("No authentication token returned.");
       }
 
+      // Store authentication information
       sessionStorage.setItem("token", token);
       sessionStorage.setItem("role", role || "");
 
+      // Redirect according to user role
       if (role === "admin") {
-        navigate("/admin/dashboard", { replace: true });
+        navigate("/admin/dashboard", {
+          replace: true,
+        });
       } else if (role === "doctor") {
-        navigate("/doctor/dashboard", { replace: true });
+        navigate("/doctor/dashboard", {
+          replace: true,
+        });
       } else {
-        navigate("/patient/dashboard", { replace: true });
+        navigate("/patient/dashboard", {
+          replace: true,
+        });
       }
     } catch (err) {
       console.error("Login failed:", err);
+
       setError(
         err.response?.data?.detail ||
-        err.response?.data?.error ||
-        err.message ||
-        "Login failed. Please check your credentials."
+          err.response?.data?.error ||
+          err.message ||
+          "Login failed. Please check your credentials."
       );
     } finally {
       setLoading(false);
@@ -55,12 +76,43 @@ function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <div className="login-logo">+</div>
-        <h1>Piki Ora Medical Centre</h1>
-        <p className="login-subtitle">Sign in to your account</p>
 
+        {/* Logo */}
+        <div className="login-logo">+</div>
+
+        {/* Page title */}
+        <h1>Piki Ora Medical Centre</h1>
+
+        <p className="login-subtitle">
+          Sign in to your account
+        </p>
+
+        {/* Registration success message */}
+        {successMessage && (
+          <p
+            role="status"
+            style={{
+              background: "#ecfdf5",
+              color: "#065f46",
+              padding: "12px",
+              borderRadius: "8px",
+              marginBottom: "20px",
+              textAlign: "center",
+              fontWeight: "500",
+            }}
+          >
+            {successMessage}
+          </p>
+        )}
+
+        {/* Login form */}
         <form onSubmit={handleLogin}>
-          <label htmlFor="username">Username</label>
+
+          {/* Username */}
+          <label htmlFor="username">
+            Username
+          </label>
+
           <input
             id="username"
             type="text"
@@ -71,7 +123,11 @@ function Login() {
             required
           />
 
-          <label htmlFor="password">Password</label>
+          {/* Password */}
+          <label htmlFor="password">
+            Password
+          </label>
+
           <input
             id="password"
             type="password"
@@ -82,16 +138,31 @@ function Login() {
             required
           />
 
-          {error && <p className="login-error">{error}</p>}
+          {/* Login error */}
+          {error && (
+            <p className="login-error" role="alert">
+              {error}
+            </p>
+          )}
 
-          <button type="submit" disabled={loading}>
+          {/* Login button */}
+          <button
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Signing in..." : "Sign In"}
           </button>
+
         </form>
 
+        {/* Registration link */}
         <p className="login-footer">
-          Don't have an account? <Link to="/register">Register</Link>
+          Don't have an account?{" "}
+          <Link to="/register">
+            Register
+          </Link>
         </p>
+
       </div>
     </div>
   );
