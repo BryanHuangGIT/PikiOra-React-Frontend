@@ -2,7 +2,20 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import DoctorManagement from "./DoctorManagement";
+import AvailabilityManagement from "./AvailabilityManagement";
 import "./AdminDashboard.css";
+
+function normalizeList(data) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.results)) {
+    return data.results;
+  }
+
+  return [];
+}
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -12,30 +25,17 @@ function AdminDashboard() {
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [availability, setAvailability] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const normalizeList = (data) => {
-    if (Array.isArray(data)) {
-      return data;
-    }
-
-    if (Array.isArray(data?.results)) {
-      return data.results;
-    }
-
-    return [];
-  };
-
   const loadDashboard = useCallback(async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+    }
+
+    setError("");
+
     try {
-      if (showLoading) {
-        setLoading(true);
-      }
-
-      setError("");
-
       const [
         doctorsResponse,
         patientsResponse,
@@ -63,7 +63,6 @@ function AdminDashboard() {
         setError("Unable to load dashboard data. Please try again.");
       }
 
-      // Allow child components to detect a failed refresh.
       throw err;
     } finally {
       if (showLoading) {
@@ -74,7 +73,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     loadDashboard().catch(() => {
-      // Error is already displayed by loadDashboard.
+      // loadDashboard already displays the error.
     });
   }, [loadDashboard]);
 
@@ -87,18 +86,9 @@ function AdminDashboard() {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("role");
       sessionStorage.removeItem("username");
-
       navigate("/login", { replace: true });
     }
   };
-
-  const pendingAppointments = appointments.filter(
-    (appointment) => appointment.status === "Pending"
-  ).length;
-
-  const approvedDoctors = doctors.filter(
-    (doctor) => doctor.approved === true
-  ).length;
 
   const getDoctorName = (doctorId) => {
     const doctor = doctors.find(
@@ -109,14 +99,14 @@ function AdminDashboard() {
       return `Doctor #${doctorId}`;
     }
 
-    const fullName = [
+    const name = [
       doctor.user?.first_name,
       doctor.user?.last_name,
     ]
       .filter(Boolean)
       .join(" ");
 
-    return fullName || doctor.user?.username || `Doctor #${doctorId}`;
+    return name || doctor.user?.username || `Doctor #${doctorId}`;
   };
 
   const getPatientName = (patientId) => {
@@ -128,113 +118,64 @@ function AdminDashboard() {
       return `Patient #${patientId}`;
     }
 
-    const fullName = [
+    const name = [
       patient.user?.first_name,
       patient.user?.last_name,
     ]
       .filter(Boolean)
       .join(" ");
 
-    return fullName || patient.user?.username || `Patient #${patientId}`;
+    return name || patient.user?.username || `Patient #${patientId}`;
   };
 
-  const renderOverview = () => (
-    <>
-      <h2>Dashboard Overview</h2>
-      <p className="admin-description">
-        Welcome to the Piki Ora Medical Centre administration system.
-      </p>
+  const renderOverview = () => {
+    const approvedDoctors = doctors.filter(
+      (doctor) => doctor.approved === true
+    ).length;
 
-      <div className="admin-stats-grid">
-        <div className="admin-stat-card">
-          <h3>Total Doctors</h3>
-          <p>{doctors.length}</p>
+    const pendingAppointments = appointments.filter(
+      (appointment) => appointment.status === "Pending"
+    ).length;
+
+    const stats = [
+      ["Total Doctors", doctors.length],
+      ["Approved Doctors", approvedDoctors],
+      ["Total Patients", patients.length],
+      ["Total Appointments", appointments.length],
+      ["Pending Appointments", pendingAppointments],
+      ["Availability Records", availability.length],
+    ];
+
+    return (
+      <>
+        <h2>Dashboard Overview</h2>
+
+        <p className="admin-description">
+          Welcome to the Piki Ora Medical Centre administration system.
+        </p>
+
+        <div className="admin-stats-grid">
+          {stats.map(([label, value]) => (
+            <div className="admin-stat-card" key={label}>
+              <h3>{label}</h3>
+              <p>{value}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="admin-stat-card">
-          <h3>Approved Doctors</h3>
-          <p>{approvedDoctors}</p>
+        <div className="admin-info-panel">
+          <h3>Administrator Responsibilities</h3>
+          <ul>
+            <li>Add, edit, deactivate and reactivate doctor profiles.</li>
+            <li>Create and manage doctor consultation schedules.</li>
+            <li>View all patient appointment bookings.</li>
+            <li>Edit, reschedule or cancel appointments.</li>
+            <li>Manage patient user accounts.</li>
+          </ul>
         </div>
-
-        <div className="admin-stat-card">
-          <h3>Total Patients</h3>
-          <p>{patients.length}</p>
-        </div>
-
-        <div className="admin-stat-card">
-          <h3>Total Appointments</h3>
-          <p>{appointments.length}</p>
-        </div>
-
-        <div className="admin-stat-card">
-          <h3>Pending Appointments</h3>
-          <p>{pendingAppointments}</p>
-        </div>
-
-        <div className="admin-stat-card">
-          <h3>Availability Records</h3>
-          <p>{availability.length}</p>
-        </div>
-      </div>
-
-      <div className="admin-info-panel">
-        <h3>Administrator Responsibilities</h3>
-        <ul>
-          <li>Add, edit, deactivate and reactivate doctor profiles.</li>
-          <li>Create and manage doctor consultation schedules.</li>
-          <li>View and manage patient appointment bookings.</li>
-          <li>Edit, reschedule or cancel appointments.</li>
-          <li>Manage patient user accounts.</li>
-        </ul>
-      </div>
-    </>
-  );
-
-  const renderAvailability = () => (
-    <>
-      <h2>Availability Management</h2>
-      <p className="admin-description">
-        View doctor consultation schedules.
-      </p>
-
-      <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Doctor</th>
-              <th>Date</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {availability.length === 0 ? (
-              <tr>
-                <td colSpan="5">No availability records found.</td>
-              </tr>
-            ) : (
-              availability.map((slot) => (
-                <tr key={slot.id}>
-                  <td>{slot.id}</td>
-                  <td>{getDoctorName(slot.doctor)}</td>
-                  <td>{slot.date}</td>
-                  <td>{slot.start_time}</td>
-                  <td>{slot.end_time}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="admin-note">
-        Creating, editing and removing availability will be
-        implemented in the next stage.
-      </p>
-    </>
-  );
+      </>
+    );
+  };
 
   const renderAppointments = () => (
     <>
@@ -282,8 +223,8 @@ function AdminDashboard() {
       </div>
 
       <p className="admin-note">
-        Appointment editing, rescheduling and cancellation will
-        be implemented in a later stage.
+        Appointment editing and cancellation will be implemented
+        in a later stage.
       </p>
     </>
   );
@@ -326,7 +267,7 @@ function AdminDashboard() {
       </div>
 
       <p className="admin-note">
-        Patient account management actions will be added later.
+        Patient account management will be implemented in a later stage.
       </p>
     </>
   );
@@ -342,7 +283,13 @@ function AdminDashboard() {
         );
 
       case "availability":
-        return renderAvailability();
+        return (
+          <AvailabilityManagement
+            availability={availability}
+            doctors={doctors}
+            onRefresh={() => loadDashboard(false)}
+          />
+        );
 
       case "appointments":
         return renderAppointments();
@@ -383,9 +330,9 @@ function AdminDashboard() {
         </nav>
 
         <button
+          type="button"
           className="admin-logout"
           onClick={handleLogout}
-          type="button"
         >
           Logout
         </button>
