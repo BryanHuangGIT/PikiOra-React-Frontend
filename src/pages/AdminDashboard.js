@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import DoctorManagement from "./DoctorManagement";
 import AvailabilityManagement from "./AvailabilityManagement";
+import AppointmentManagement from "./AppointmentManagement";
 import "./AdminDashboard.css";
 
 function normalizeList(data) {
@@ -73,7 +74,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     loadDashboard().catch(() => {
-      // loadDashboard already displays the error.
+      // Error is already displayed in the dashboard.
     });
   }, [loadDashboard]);
 
@@ -88,44 +89,6 @@ function AdminDashboard() {
       sessionStorage.removeItem("username");
       navigate("/login", { replace: true });
     }
-  };
-
-  const getDoctorName = (doctorId) => {
-    const doctor = doctors.find(
-      (item) => item.id === Number(doctorId)
-    );
-
-    if (!doctor) {
-      return `Doctor #${doctorId}`;
-    }
-
-    const name = [
-      doctor.user?.first_name,
-      doctor.user?.last_name,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return name || doctor.user?.username || `Doctor #${doctorId}`;
-  };
-
-  const getPatientName = (patientId) => {
-    const patient = patients.find(
-      (item) => item.id === Number(patientId)
-    );
-
-    if (!patient) {
-      return `Patient #${patientId}`;
-    }
-
-    const name = [
-      patient.user?.first_name,
-      patient.user?.last_name,
-    ]
-      .filter(Boolean)
-      .join(" ");
-
-    return name || patient.user?.username || `Patient #${patientId}`;
   };
 
   const renderOverview = () => {
@@ -165,10 +128,11 @@ function AdminDashboard() {
 
         <div className="admin-info-panel">
           <h3>Administrator Responsibilities</h3>
+
           <ul>
             <li>Add, edit, deactivate and reactivate doctor profiles.</li>
             <li>Create and manage doctor consultation schedules.</li>
-            <li>View all patient appointment bookings.</li>
+            <li>View and manage patient appointment bookings.</li>
             <li>Edit, reschedule or cancel appointments.</li>
             <li>Manage patient user accounts.</li>
           </ul>
@@ -177,61 +141,10 @@ function AdminDashboard() {
     );
   };
 
-  const renderAppointments = () => (
-    <>
-      <h2>Appointment Management</h2>
-      <p className="admin-description">
-        View all patient appointment bookings.
-      </p>
-
-      <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Patient</th>
-              <th>Doctor</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {appointments.length === 0 ? (
-              <tr>
-                <td colSpan="6">No appointments found.</td>
-              </tr>
-            ) : (
-              appointments.map((appointment) => (
-                <tr key={appointment.id}>
-                  <td>{appointment.id}</td>
-                  <td>{getPatientName(appointment.patient)}</td>
-                  <td>{getDoctorName(appointment.doctor)}</td>
-                  <td>{appointment.appointment_date}</td>
-                  <td>{appointment.appointment_time}</td>
-                  <td>
-                    <span className="admin-status">
-                      {appointment.status}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="admin-note">
-        Appointment editing and cancellation will be implemented
-        in a later stage.
-      </p>
-    </>
-  );
-
   const renderPatients = () => (
     <>
       <h2>Patient Management</h2>
+
       <p className="admin-description">
         View registered patient accounts.
       </p>
@@ -267,7 +180,7 @@ function AdminDashboard() {
       </div>
 
       <p className="admin-note">
-        Patient account management will be implemented in a later stage.
+        Patient account management actions will be implemented next.
       </p>
     </>
   );
@@ -292,7 +205,14 @@ function AdminDashboard() {
         );
 
       case "appointments":
-        return renderAppointments();
+        return (
+          <AppointmentManagement
+            appointments={appointments}
+            doctors={doctors}
+            patients={patients}
+            onRefresh={() => loadDashboard(false)}
+          />
+        );
 
       case "patients":
         return renderPatients();
@@ -306,6 +226,7 @@ function AdminDashboard() {
     <div className="admin-dashboard">
       <aside className="admin-sidebar">
         <h1 className="admin-logo">Piki Ora</h1>
+
         <p className="admin-sidebar-subtitle">
           Administrator Portal
         </p>
