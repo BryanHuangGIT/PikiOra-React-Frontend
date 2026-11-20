@@ -1,0 +1,181 @@
+.patient-management-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.patient-management-heading h2 {
+  margin: 0 0 10px;
+}
+
+.patient-count {
+  background: #d9eef3;
+  color: #176078;
+  padding: 10px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.patient-filters {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) 220px;
+  gap: 18px;
+  background: white;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.patient-filters label,
+.patient-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.patient-filters input,
+.patient-filters select,
+.patient-form-grid input {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 14px;
+  box-sizing: border-box;
+  background: white;
+  font-family: inherit;
+}
+
+.patient-filters input:focus,
+.patient-filters select:focus,
+.patient-form-grid input:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #176078;
+}
+
+.patient-form-panel {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 25px;
+}
+
+.patient-form-panel h3 {
+  margin: 0 0 22px;
+}
+
+.patient-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.patient-form-hint {
+  margin-top: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.patient-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.patient-primary-button,
+.patient-secondary-button,
+.patient-edit-button,
+.patient-deactivate-button,
+.patient-reactivate-button {
+  border: none;
+  border-radius: 7px;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.patient-primary-button {
+  background: #176078;
+  color: white;
+}
+
+.patient-primary-button:hover {
+  background: #10485b;
+}
+
+.patient-secondary-button {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.patient-edit-button {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.patient-deactivate-button {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.patient-reactivate-button {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.patient-primary-button:disabled,
+.patient-secondary-button:disabled,
+.patient-edit-button:disabled,
+.patient-deactivate-button:disabled,
+.patient-reactivate-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.patient-row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.patient-success {
+  background: #dcfce7;
+  color: #166534;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.patient-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 700px) {
+  .patient-management-heading {
+    flex-direction: column;
+  }
+
+  .patient-filters,
+  .patient-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-form-panel {
+    padding: 18px;
+  }
+}

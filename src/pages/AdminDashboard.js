@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import api from "../api";
 import DoctorManagement from "./DoctorManagement";
 import AvailabilityManagement from "./AvailabilityManagement";
 import AppointmentManagement from "./AppointmentManagement";
+import PatientManagement from "./PatientManagement";
+
 import "./AdminDashboard.css";
 
 function normalizeList(data) {
@@ -22,10 +25,12 @@ function AdminDashboard() {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("overview");
+
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [availability, setAvailability] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -74,7 +79,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     loadDashboard().catch(() => {
-      // Error is already displayed in the dashboard.
+      // Error is already displayed by loadDashboard.
     });
   }, [loadDashboard]);
 
@@ -87,13 +92,20 @@ function AdminDashboard() {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("role");
       sessionStorage.removeItem("username");
+
       navigate("/login", { replace: true });
     }
   };
 
   const renderOverview = () => {
     const approvedDoctors = doctors.filter(
-      (doctor) => doctor.approved === true
+      (doctor) =>
+        doctor.approved === true &&
+        doctor.user?.is_active !== false
+    ).length;
+
+    const activePatients = patients.filter(
+      (patient) => patient.user?.is_active !== false
     ).length;
 
     const pendingAppointments = appointments.filter(
@@ -102,8 +114,9 @@ function AdminDashboard() {
 
     const stats = [
       ["Total Doctors", doctors.length],
-      ["Approved Doctors", approvedDoctors],
+      ["Approved Active Doctors", approvedDoctors],
       ["Total Patients", patients.length],
+      ["Active Patients", activePatients],
       ["Total Appointments", appointments.length],
       ["Pending Appointments", pendingAppointments],
       ["Availability Records", availability.length],
@@ -141,50 +154,6 @@ function AdminDashboard() {
     );
   };
 
-  const renderPatients = () => (
-    <>
-      <h2>Patient Management</h2>
-
-      <p className="admin-description">
-        View registered patient accounts.
-      </p>
-
-      <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Phone</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {patients.length === 0 ? (
-              <tr>
-                <td colSpan="4">No patients found.</td>
-              </tr>
-            ) : (
-              patients.map((patient) => (
-                <tr key={patient.id}>
-                  <td>{patient.id}</td>
-                  <td>{patient.user?.username || "N/A"}</td>
-                  <td>{patient.user?.email || "N/A"}</td>
-                  <td>{patient.phone || "N/A"}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="admin-note">
-        Patient account management actions will be implemented next.
-      </p>
-    </>
-  );
-
   const renderContent = () => {
     switch (activeTab) {
       case "doctors":
@@ -215,7 +184,12 @@ function AdminDashboard() {
         );
 
       case "patients":
-        return renderPatients();
+        return (
+          <PatientManagement
+            patients={patients}
+            onRefresh={() => loadDashboard(false)}
+          />
+        );
 
       default:
         return renderOverview();
