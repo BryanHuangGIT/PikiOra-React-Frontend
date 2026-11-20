@@ -258,3 +258,107 @@
     flex-direction: column;
   }
 }
+/* Patient appointment editing */
+
+.patient-appointment-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.edit-appointment-button {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: none;
+  border-radius: 7px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.edit-appointment-button:hover {
+  background: #bfdbfe;
+}
+
+.patient-edit-panel {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+}
+
+.patient-edit-panel h3 {
+  margin-top: 0;
+}
+
+.patient-edit-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.patient-edit-panel label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.patient-edit-panel input,
+.patient-edit-panel select,
+.patient-edit-panel textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.patient-edit-panel textarea {
+  resize: vertical;
+}
+
+.patient-edit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.edit-save-button,
+.edit-cancel-button {
+  border: none;
+  border-radius: 7px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.edit-save-button {
+  background: #176078;
+  color: white;
+}
+
+.edit-cancel-button {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.edit-save-button:disabled,
+.edit-cancel-button:disabled,
+.edit-appointment-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .patient-edit-panel {
+    padding: 16px;
+  }
+
+  .patient-edit-actions {
+    flex-direction: column;
+  }
+}
