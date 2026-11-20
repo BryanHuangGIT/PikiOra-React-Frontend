@@ -1,4 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api";
@@ -24,6 +28,7 @@ function normalizeList(data) {
 function AdminDashboard() {
   const navigate = useNavigate();
 
+  const [authorized, setAuthorized] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
   const [doctors, setDoctors] = useState([]);
@@ -34,65 +39,116 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadDashboard = useCallback(async (showLoading = true) => {
-    if (showLoading) {
-      setLoading(true);
-    }
-
-    setError("");
-
-    try {
-      const [
-        doctorsResponse,
-        patientsResponse,
-        appointmentsResponse,
-        availabilityResponse,
-      ] = await Promise.all([
-        api.get("admin/doctors/"),
-        api.get("admin/patients/"),
-        api.get("admin/appointments/"),
-        api.get("admin/availability/"),
-      ]);
-
-      setDoctors(normalizeList(doctorsResponse.data));
-      setPatients(normalizeList(patientsResponse.data));
-      setAppointments(normalizeList(appointmentsResponse.data));
-      setAvailability(normalizeList(availabilityResponse.data));
-    } catch (err) {
-      console.error("Dashboard loading error:", err);
-
+  const handleAuthenticationError = useCallback(
+    (err) => {
       if (err.response?.status === 401) {
-        setError("Your session has expired. Please log in again.");
-      } else if (err.response?.status === 403) {
-        setError("Access denied. Administrator account required.");
-      } else {
-        setError("Unable to load dashboard data. Please try again.");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("role");
+        sessionStorage.removeItem("username");
+
+        navigate("/login", { replace: true });
+        return true;
       }
 
-      throw err;
-    } finally {
-      if (showLoading) {
-        setLoading(false);
+      if (err.response?.status === 403) {
+        setError(
+          "Access denied. Administrator permissions are required."
+        );
+        return true;
       }
-    }
-  }, []);
+
+      return false;
+    },
+    [navigate]
+  );
+
+  const loadDashboard = useCallback(
+    async (showLoading = true) => {
+      if (
+        !sessionStorage.getItem("token") ||
+        sessionStorage.getItem("role") !== "admin"
+      ) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (showLoading) {
+        setLoading(true);
+      }
+
+      setError("");
+
+      try {
+        const [
+          doctorsResponse,
+          patientsResponse,
+          appointmentsResponse,
+          availabilityResponse,
+        ] = await Promise.all([
+          api.get("admin/doctors/"),
+          api.get("admin/patients/"),
+          api.get("admin/appointments/"),
+          api.get("admin/availability/"),
+        ]);
+
+        setDoctors(normalizeList(doctorsResponse.data));
+        setPatients(normalizeList(patientsResponse.data));
+        setAppointments(
+          normalizeList(appointmentsResponse.data)
+        );
+        setAvailability(
+          normalizeList(availabilityResponse.data)
+        );
+      } catch (err) {
+        console.error("Dashboard loading error:", err);
+
+        if (!handleAuthenticationError(err)) {
+          setError(
+            "Unable to load dashboard data. Please try again."
+          );
+        }
+
+        throw err;
+      } finally {
+        if (showLoading) {
+          setLoading(false);
+        }
+      }
+    },
+    [navigate, handleAuthenticationError]
+  );
 
   useEffect(() => {
+    const token = sessionStorage.getItem("token");
+    const role = sessionStorage.getItem("role");
+
+    if (!token || role !== "admin") {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    setAuthorized(true);
+
     loadDashboard().catch(() => {
-      // Error is already displayed by loadDashboard.
+      // Error is handled by loadDashboard.
     });
-  }, [loadDashboard]);
+  }, [navigate, loadDashboard]);
+
+  const handleRefresh = async () => {
+    await loadDashboard(false);
+  };
 
   const handleLogout = async () => {
     try {
       await api.post("auth/logout/");
     } catch (err) {
-      console.error("Logout error:", err);
+      console.error("Logout request failed:", err);
     } finally {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("role");
       sessionStorage.removeItem("username");
 
+      setAuthorized(false);
       navigate("/login", { replace: true });
     }
   };
@@ -143,11 +199,21 @@ function AdminDashboard() {
           <h3>Administrator Responsibilities</h3>
 
           <ul>
-            <li>Add, edit, deactivate and reactivate doctor profiles.</li>
-            <li>Create and manage doctor consultation schedules.</li>
-            <li>View and manage patient appointment bookings.</li>
-            <li>Edit, reschedule or cancel appointments.</li>
-            <li>Manage patient user accounts.</li>
+            <li>
+              Add, edit, deactivate and reactivate doctor profiles.
+            </li>
+            <li>
+              Create and manage doctor consultation schedules.
+            </li>
+            <li>
+              View and manage patient appointment bookings.
+            </li>
+            <li>
+              Edit, reschedule and cancel appointments.
+            </li>
+            <li>
+              Manage patient user accounts.
+            </li>
           </ul>
         </div>
       </>
@@ -160,7 +226,7 @@ function AdminDashboard() {
         return (
           <DoctorManagement
             doctors={doctors}
-            onRefresh={() => loadDashboard(false)}
+            onRefresh={handleRefresh}
           />
         );
 
@@ -169,7 +235,7 @@ function AdminDashboard() {
           <AvailabilityManagement
             availability={availability}
             doctors={doctors}
-            onRefresh={() => loadDashboard(false)}
+            onRefresh={handleRefresh}
           />
         );
 
@@ -179,7 +245,7 @@ function AdminDashboard() {
             appointments={appointments}
             doctors={doctors}
             patients={patients}
-            onRefresh={() => loadDashboard(false)}
+            onRefresh={handleRefresh}
           />
         );
 
@@ -187,7 +253,7 @@ function AdminDashboard() {
         return (
           <PatientManagement
             patients={patients}
-            onRefresh={() => loadDashboard(false)}
+            onRefresh={handleRefresh}
           />
         );
 
@@ -195,6 +261,12 @@ function AdminDashboard() {
         return renderOverview();
     }
   };
+
+  // Prevent dashboard content from rendering before
+  // the role check has completed.
+  if (!authorized) {
+    return <p>Checking administrator access...</p>;
+  }
 
   return (
     <div className="admin-dashboard">
@@ -237,7 +309,9 @@ function AdminDashboard() {
         <header className="admin-header">
           <div>
             <h1>Administrator Dashboard</h1>
-            <p>Manage Piki Ora Medical Centre operations.</p>
+            <p>
+              Manage Piki Ora Medical Centre operations.
+            </p>
           </div>
 
           <span className="admin-role-label">
@@ -249,7 +323,18 @@ function AdminDashboard() {
           {loading ? (
             <p>Loading administrator data...</p>
           ) : error ? (
-            <div className="admin-error">{error}</div>
+            <div className="admin-error" role="alert">
+              {error}
+
+              <button
+                type="button"
+                onClick={() => {
+                  loadDashboard().catch(() => {});
+                }}
+              >
+                Try Again
+              </button>
+            </div>
           ) : (
             renderContent()
           )}

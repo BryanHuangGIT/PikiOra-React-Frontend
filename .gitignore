@@ -5,3 +5,5 @@
 .env.development.local
 .env.test.local
 .env.production.local
+pikiora_data.json
+db_backup.sqlite3
